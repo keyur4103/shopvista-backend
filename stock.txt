@@ -1,0 +1,25 @@
+const Stock = require("../models/Stock");
+const { successResponseWithData, ErrorResponse } = require("../utils/response");
+
+// Update stock quantity API
+exports.updateStockQuantity = async (req, res) => {
+  try {
+    const { stockId } = req.params;
+    const { quantityChange } = req.body;
+
+    const stock = await Stock.findById(stockId);
+
+    if (!stock) {
+      return ErrorResponse(res, "Stock not found", 404);
+    }
+
+    // Update the stock quantity based on the provided change
+    stock.quantity += quantityChange;
+    await stock.save();
+
+    successResponseWithData(res, "Stock quantity updated successfully", stock);
+  } catch (error) {
+    console.error(error);
+    ErrorResponse(res, "Internal Server Error");
+  }
+};
