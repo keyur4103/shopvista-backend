@@ -261,16 +261,30 @@ exports.cancelOrder = async (req, res) => {
 async function updateStockQuantities(orderItems) {
   console.log("🚀 ~ updateStockQuantities ~ orderItems:", orderItems);
   for (const item of orderItems) {
-    const stock = await Stock.findOne({
-      product: item.product,
-      color: item.color,
-      size: item.size,
-    });
+    // Build the query object dynamically based on the presence of color and size
+    let query = { product: item.product };
+
+    // Add color and size to the query if provided
+    if (item.color) {
+      query.color = item.color;
+    }
+
+    if (item.size) {
+      query.size = item.size;
+    }
+
+    // Find the stock for the given product, color, and size (if provided)
+    const stock = await Stock.findOne(query);
     console.log("🚀 ~ updateStockQuantities ~ stock:", stock);
 
     if (stock) {
-      stock.quantity -= item.quantity;
-      await stock.save();
+      stock.quantity -= item.quantity; // Decrease the stock quantity
+      await stock.save(); // Save the updated stock
+    } else {
+      console.log(
+        "🚀 ~ updateStockQuantities ~ No stock found for item:",
+        item
+      );
     }
   }
 }

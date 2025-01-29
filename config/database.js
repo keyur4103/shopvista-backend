@@ -1,7 +1,8 @@
 const mongoose = require("mongoose");
 require("dotenv").config(); // access environment variables
 
-const MONGO_URI = "mongodb://localhost:27017/ShopVista";
+const MONGO_URI =
+  "mongodb+srv://kfataniya637:aDbnSIDTGEaijXEu@cluster1.3bs56qk.mongodb.net/shopvista";
 
 mongoose.set("strictQuery", false);
 

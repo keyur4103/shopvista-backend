@@ -16,7 +16,7 @@ const asyncHandler = require("express-async-handler");
 // @access Private/Admin
 exports.getallProducts = async (req, res) => {
   try {
-    // Pagination
+    // Pagination 
     const page = req.query.page || 1;
     const limit = 2;
 
@@ -50,7 +50,6 @@ exports.getProductBySlug = async (req, res) => {
       .populate({ path: "color", select: "name" })
       .populate({ path: "size", select: "name" })
       .populate({ path: "stocks", select: "color , size , quantity " });
-
     if (!product) {
       return res.status(404).json({ error: "Product not found" });
     }
@@ -69,27 +68,17 @@ exports.getProductBySlug = async (req, res) => {
 // @access Private/Admin 
 exports.addProduct = async (req, res) => {
   try {
-    const { color, size } = req.body;
-    // Access the uploaded file information from req.file
-
-    // console.log("🚀 ~ exports.addProduct= ~ req.files:", req.files);
+    const { color = [], size = [] } = req.body; // Default to empty arrays if not provided
     console.log("🚀 ~ exports.addProduct= ~ req.body:", req.body);
-    const coverImage = req.files["coverImage"]
-      ? req.files["coverImage"][0].path
-      : null;
-    const images = req.files["images"]
-      ? req.files["images"].map((image) => image.path)
-      : [];
 
-    // const Colors = ["red", "blue"];
-    // const Sizes = ["S", "M", "L"];
+    const coverImage = req.files?.["coverImage"]?.[0]?.path || null;
+    const images = req.files?.["images"]?.map((image) => image.path) || [];
 
-    // Find or create colors and get their _ids
+    // Find or create colors and get their _ids (only if colors are provided)
     const colorIds = await Promise.all(
       color.map(async (colorName) => {
         let color = await Color.findOne({ name: colorName });
 
-        // If color doesn't exist, create it
         if (!color) {
           color = new Color({ name: colorName });
           await color.save();
@@ -99,12 +88,11 @@ exports.addProduct = async (req, res) => {
       })
     );
 
-    // Find or create sizes and get their _ids
+    // Find or create sizes and get their _ids (only if sizes are provided)
     const sizeIds = await Promise.all(
       size.map(async (sizeName) => {
         let size = await Size.findOne({ name: sizeName });
 
-        // If size doesn't exist, create it
         if (!size) {
           size = new Size({ name: sizeName });
           await size.save();
@@ -117,8 +105,8 @@ exports.addProduct = async (req, res) => {
     // Create the product
     const newProduct = new Product({
       ...req.body,
-      color: colorIds,
-      size: sizeIds,
+      color: colorIds.length ? colorIds : undefined, // Add color if present
+      size: sizeIds.length ? sizeIds : undefined, // Add size if present
       coverImage,
       images,
       stocks: [],
@@ -126,25 +114,25 @@ exports.addProduct = async (req, res) => {
 
     const savedProduct = await newProduct.save();
 
-    // Create stock entries for each color
-    for (const colorId of colorIds) {
-      for (const sizeId of sizeIds) {
-        const newStock = new Stock({
-          product: savedProduct._id,
-          color: colorId,
-          size: sizeId,
-          quantity: 0,
-        });
+    // Create stock entries only if color and size are provided
+    if (colorIds.length && sizeIds.length) {
+      for (const colorId of colorIds) {
+        for (const sizeId of sizeIds) {
+          const newStock = new Stock({
+            product: savedProduct._id,
+            color: colorId,
+            size: sizeId,
+            quantity: 0,
+          });
 
-        const savedStock = await newStock.save();
-
-        // Add the stock reference to the product's stocks array
-        savedProduct.stocks.push(savedStock._id);
+          const savedStock = await newStock.save();
+          savedProduct.stocks.push(savedStock._id);
+        }
       }
-    }
 
-    // Update the product with the updated stocks array
-    await savedProduct.save();
+      // Update the product with the updated stocks array
+      await savedProduct.save();
+    }
 
     successResponseWithData(res, "Product created successfully", savedProduct);
   } catch (error) {
@@ -152,6 +140,7 @@ exports.addProduct = async (req, res) => {
     ErrorResponse(res, "Internal Server Error");
   }
 };
+
 
 // @desc Update a Product
 // @access Private/Admin
@@ -355,7 +344,7 @@ exports.products = async (req, res) => {
           .json({ success: false, message: "Invalid price range" });
       }
     }
-
+    
     const totalDocument = await Product.find().count();
     console.log("🚀 ~ exports.products= ~ totalDocument:", totalDocument);
 

@@ -18,22 +18,38 @@ exports.updateStock = async (req, res) => {
       return ErrorResponse(res, "Product not found", 404);
     }
 
-    // Find the stock entry for the product and color
-    const stock = await Stock.findOne({
-      product: productId,
-      color: colorId,
-      size: sizeId,
-    });
+    // Build the query object dynamically
+    let query = { product: productId };
+
+    if (colorId) {
+      query.color = colorId; // Ensure colorId is valid (ObjectId)
+    }
+
+    if (sizeId) {
+      query.size = sizeId; // Ensure sizeId is valid (ObjectId)
+    }
+
+    // Log the query to check what we're searching for
+    console.log("Query being used:", query);
+
+    // Find the stock entry for the product (and color/size if provided)
+    const stock = await Stock.findOne(query);
 
     if (!stock) {
-      return ErrorResponse(res, "Stock entry not found");
+      return ErrorResponse(res, "Stock entry not found", 404);
+    }
+
+    // Ensure quantityChange is a valid number
+    const quantity = +quantityChange;
+    if (isNaN(quantity)) {
+      return ErrorResponse(res, "Invalid quantity change value");
     }
 
     // Determine the operation based on the 'action'
     if (action === "add") {
-      stock.quantity = +stock.quantity + +quantityChange;
+      stock.quantity = +stock.quantity + quantity;
     } else if (action === "remove") {
-      stock.quantity = +stock.quantity - +quantityChange;
+      stock.quantity = +stock.quantity - quantity;
 
       // Ensure the stock quantity does not go below zero
       stock.quantity = Math.max(stock.quantity, 0);
@@ -53,6 +69,8 @@ exports.updateStock = async (req, res) => {
     ErrorResponse(res, "Internal Server Error");
   }
 };
+
+
 
 // Get All Stocks
 exports.getallStock = async (req, res) => {

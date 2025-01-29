@@ -10,10 +10,12 @@ const stockSchema = new mongoose.Schema(
     color: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Color",
+      default: null, // Set default to null
     },
     size: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Size",
+      default: null, // Set default to null
     },
     quantity: {
       type: String,

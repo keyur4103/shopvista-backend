@@ -20,13 +20,19 @@ exports.addProductToCart = asyncHandler(async (req, res) => {
     const userId = req.crUser._id;
     console.log("🚀 ~ exports.addProductToCart=asyncHandler ~ userId:", userId);
 
-    // Check if the product is available in stock with the specified color and size
-    const stockItem = await Stock.findOne({
-      product: productId,
-      color: colorId,
-      size: sizeId,
-      quantity: { $gt: 0 },
-    });
+    // Build query condition based on color and size availability
+    let stockQuery = { product: productId, quantity: { $gt: 0 } };
+
+    // If color and size are provided and not null/empty, filter by them
+    if (colorId && colorId !== "") {
+      stockQuery.color = colorId;
+    }
+    if (sizeId && sizeId !== "") {
+      stockQuery.size = sizeId;
+    }
+
+    // Check if the product is available in stock with the specified color and size (or without if not provided)
+    const stockItem = await Stock.findOne(stockQuery);
 
     if (!stockItem) {
       return ErrorResponse(res, "Product is Out Of Stock 🔴");
@@ -50,8 +56,8 @@ exports.addProductToCart = asyncHandler(async (req, res) => {
     const existingCartItemIndex = cart.cartItems.findIndex(
       (item) =>
         item.product.toString() === productId &&
-        item.color.toString() === colorId &&
-        item.size.toString() === sizeId
+        (item.color ? item.color.toString() === colorId : !colorId) &&
+        (item.size ? item.size.toString() === sizeId : !sizeId)
     );
 
     if (existingCartItemIndex !== -1) {
@@ -67,8 +73,8 @@ exports.addProductToCart = asyncHandler(async (req, res) => {
 
       const newCartItem = {
         product: productId,
-        color: colorId,
-        size: sizeId,
+        color: colorId || null, // Set color to null if not provided or empty
+        size: sizeId || null, // Set size to null if not provided or empty
         price: product.price,
       };
 
@@ -105,16 +111,25 @@ exports.removeProductFromCart = async (req, res) => {
       return ErrorResponse(res, "Cart not found");
     }
 
-    // Update user's cart using the $pull operator to remove the specified item
+    // Build the query to remove the product. If colorId or sizeId is undefined, don't include them in the query.
+    let query = {
+      product: productId,
+    };
+
+    if (colorId && colorId !== "undefined") {
+      query.color = colorId;
+    }
+
+    if (sizeId && sizeId !== "undefined") {
+      query.size = sizeId;
+    }
+
+    // Update user's cart using the $pull operator to remove the specified item(s)
     const updatedCart = await Cart.findOneAndUpdate(
       { user: userId },
       {
         $pull: {
-          cartItems: {
-            product: productId,
-            color: colorId,
-            size: sizeId,
-          },
+          cartItems: query,
         },
       },
       { new: true }
@@ -312,7 +327,7 @@ exports.getCheckout = async (req, res) => {
     color: item.color,
     size: item.size,
     price: item.price,
-  }));  
+  }));
 
   const order = await new Order({
     user: userId,
