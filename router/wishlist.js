@@ -5,12 +5,13 @@ const {
   removeProductFromWishlist,
   getLoggedUserWishlist,
 } = require("../controllers/wishlistController");
+const { addProductValidation } = require("../validations/productValidatin");
 const router = express.Router();
 
 // @desc Create Wishlist If user dont have OR add Product Into wishlist @access Private/User
 router.post(
   "/",
-  [requireLogIn, allowedTo("admin")],
+  [requireLogIn],
   // addProductValidation,
   addProductToWishlist
 );
@@ -18,7 +19,7 @@ router.post(
 // @desc Remove Product From wishlist @access Private/User
 router.delete(
   "/:id",
-  [requireLogIn, allowedTo("admin")],
+  [requireLogIn],
   // addProductValidation,
   removeProductFromWishlist
 );

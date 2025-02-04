@@ -13,15 +13,15 @@ const {
 router.use(requireLogIn);
 
 // @desc Get All Orders @access Private/Admin
-router.get("/all", allowedTo("admin"), getAllOrders);
+router.get("/all", getAllOrders);
 
 // @desc Place Oerder @access Private/Admin
-router.post("/", allowedTo("admin"), placeOrder);
+router.post("/", allowedTo("user"), placeOrder);
 
 router.get("/:orderId", allowedTo("admin"), getSingleOrder);
 
 // @desc Get Logged in user Order @access Private/Admin
-router.get("/", allowedTo("admin"), getUserOrders);
+router.get("/", allowedTo("user"), getUserOrders);
 
 // cancel order by orderId
 router.post("/:orderId", allowedTo("admin"), cancelOrder);

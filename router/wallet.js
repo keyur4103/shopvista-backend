@@ -7,13 +7,11 @@ const {
 } = require("../controllers/walletController");
 const router = express.Router();
 
-// Admin
 router.use(requireLogIn);
 
-// @desc Get User wallet @access Private/Admin
-router.get("/", allowedTo("admin"), getUserWallet);
+router.get("/", allowedTo("user"), getUserWallet);
 
-router.post("/create-payment-intent", allowedTo("admin"), walletAdd);
-router.post("/handle-payment-success", allowedTo("admin"), walletAddSuccess);
+router.post("/create-payment-intent", allowedTo("user"), walletAdd);
+router.post("/handle-payment-success", allowedTo("user"), walletAddSuccess);
 
 module.exports = router;

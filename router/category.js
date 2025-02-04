@@ -13,7 +13,7 @@ const {
 const router = express.Router();
 
 // Admin
-// router.use(requireLogIn);
+router.use(requireLogIn);
 
 // @desc Get all category @access Private/Admin
 router.get("/", getAllCategories);

@@ -36,6 +36,6 @@ router.put(
 router.delete("/:id", allowedTo("admin"), faqIdParamValidator, deleteFAQ);
 
 // @desc add FAQ  @access Private/Admin
-router.get("/", allowedTo("admin"), getAllFAQs);
+router.get("/", getAllFAQs);
 
 module.exports = router;

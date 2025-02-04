@@ -48,20 +48,34 @@ exports.walletAddSuccess = async (req, res) => {
     const walletTransaction = new WalletTransaction({
       userId: userId,
       type: "deposit",
-      amount: amount, 
+      amount: amount,
     });
 
     // Save the wallet transaction record
     await walletTransaction.save();
-    // Update the user's wallet balance with the added amount
-    await Wallet.findOneAndUpdate(
-      { user: userId },
-      { $inc: { amount: amount } },
-      { new: true }
-    );
 
-    return successResponse(res, "Wallet added successfully");
+    // Check if the wallet exists
+    let wallet = await Wallet.findOne({ user: userId });
+
+    if (wallet) {
+      // Wallet exists, update the amount
+      wallet = await Wallet.findOneAndUpdate(
+        { user: userId },
+        { $inc: { amount: amount } },
+        { new: true }
+      );
+    } else {
+      // Wallet does not exist, create a new one
+      wallet = new Wallet({
+        user: userId,
+        amount: amount, // Set initial balance
+      });
+      await wallet.save();
+    }
+
+    return successResponse(res, "Wallet added successfully", wallet);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 };
+

@@ -11,15 +11,15 @@ const {
 const { requireLogIn, allowedTo } = require("../middlewares/auth");
 
 // @desc  Add address to user addresses list
-router.post("/", [requireLogIn, allowedTo("admin")], addAddress);
+router.post("/", [requireLogIn, allowedTo("user")], addAddress);
 
 // @desc  Remove address from user addresses list
-router.post("/:id", [requireLogIn, allowedTo("admin")], updateAddress);
+router.post("/:id", [requireLogIn, allowedTo("user")], updateAddress);
 
 // @desc  Remove address from user addresses list
-router.delete("/:id", [requireLogIn, allowedTo("admin")], removeAddress);
+router.delete("/:id", [requireLogIn, allowedTo("user")], removeAddress);
 
 // / @desc  Get logged user addresses list
-router.get("/", [requireLogIn, allowedTo("admin")], getUserAddresses);
+router.get("/", [requireLogIn, allowedTo("user")], getUserAddresses);
 
 module.exports = router;

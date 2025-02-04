@@ -27,7 +27,7 @@ router.get("/", allowedTo("admin"), getallusers);
 router.post("/", allowedTo("admin"), createUserValidator, createUser);
 
 // @desc Update user @access Private/Admin
-router.put("/:id", allowedTo("admin"), updateUserValidator, updateUser);
+router.put("/:id", allowedTo("admin"), updateUser);
 
 // @desc Delete user @access Private/Admin
 router.delete("/:id", allowedTo("admin"), deleteUser);

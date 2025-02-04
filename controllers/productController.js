@@ -8,15 +8,15 @@ const {
   successResponse,
   ErrorResponse,
 } = require("../utils/apiResponse");
+const mongoose = require("mongoose");
 
 const asyncHandler = require("express-async-handler");
-
 
 // @desc Get all products
 // @access Private/Admin
 exports.getallProducts = async (req, res) => {
   try {
-    // Pagination 
+    // Pagination
     const page = req.query.page || 1;
     const limit = 2;
 
@@ -65,7 +65,7 @@ exports.getProductBySlug = async (req, res) => {
 };
 
 // @desc Add a Product
-// @access Private/Admin 
+// @access Private/Admin
 exports.addProduct = async (req, res) => {
   try {
     const { color = [], size = [] } = req.body; // Default to empty arrays if not provided
@@ -140,7 +140,6 @@ exports.addProduct = async (req, res) => {
     ErrorResponse(res, "Internal Server Error");
   }
 };
-
 
 // @desc Update a Product
 // @access Private/Admin
@@ -245,7 +244,6 @@ exports.deleteProduct = asyncHandler(async (req, res) => {
 exports.searchProduct = async (req, res) => {
   try {
     const searchTerm = req.query.query;
-
     // Create a MongoDB query based on the provided search term
     const query = {
       $or: [
@@ -316,7 +314,7 @@ exports.filterProduct = async (req, res) => {
 exports.products = async (req, res) => {
   try {
     // Pagination
-    const page = req.query.page || 0;
+    const page = parseInt(req.query.page) || 0;
     const limit = 4;
 
     // Initial query for pagination
@@ -344,8 +342,19 @@ exports.products = async (req, res) => {
           .json({ success: false, message: "Invalid price range" });
       }
     }
-    
-    const totalDocument = await Product.find().count();
+
+    // Check for category filter
+    if (req.query.category) {
+      if (mongoose.Types.ObjectId.isValid(req.query.category)) {
+        query.category = req.query.category; // Ensure it's a valid ObjectId
+      } else {
+        return res
+          .status(400)
+          .json({ success: false, message: "Invalid category ID" });
+      }
+    }
+
+    const totalDocument = await Product.countDocuments(query); // Count documents based on query
     console.log("🚀 ~ exports.products= ~ totalDocument:", totalDocument);
 
     const products = await Product.find(query)
@@ -354,10 +363,6 @@ exports.products = async (req, res) => {
       .populate({ path: "size", select: "name" })
       .skip(page * limit)
       .limit(limit);
-
-    // if (products.length === 0) {
-    //   return notFoundResponse(res, "No products found for the given criteria");
-    // }
 
     res.status(200).json({
       results: products.length,

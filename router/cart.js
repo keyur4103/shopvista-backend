@@ -32,7 +32,7 @@ router.get("/", [requireLogIn], getLoggedUserCart);
 // @Desc Update Cart Item Quantity Private/User
 router.put(
   "/:itemId/",
-  [requireLogIn, allowedTo("admin")],
+  [requireLogIn, allowedTo("user")],
   // updateCartValidator,
   updateCartItemQuantity
 );
@@ -40,7 +40,7 @@ router.put(
 // @Desc Clear Cart Private/User
 router.delete(
   "/",
-  [requireLogIn, allowedTo("admin")],
+  [requireLogIn, allowedTo("user")],
   // updateCartValidator,
   clearCart
 );

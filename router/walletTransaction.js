@@ -10,10 +10,8 @@ router.use(requireLogIn);
 
 router.get(
   "/",
-    allowedTo("admin"),
   // addProductValidation,
-    getWalletTransactions
-
+  getWalletTransactions
 );
 
 module.exports = router;
