@@ -130,7 +130,6 @@ exports.blockUser = asyncHandler(async (req, res) => {
 // @access Private/Admin
 exports.getLoggedInUser = asyncHandler(async (req, res) => {
   const userId = req.crUser._id;
-
   const user = await User.findById(userId);
   if (!user) {
     notFoundResponse(res, "User not found");
